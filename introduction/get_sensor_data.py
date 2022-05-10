@@ -22,7 +22,7 @@ class MyAgent(SparkAgent):
         #print(perception.imu)
         # YOUR CODE HERE hj1
         # get angle and temperature to current data of joint HeadYaw
-
+        #committest
         print('HeadYaw angle: ' + str(angle) + ' temperature: ' + str(temperature))
         return super(MyAgent, self).think(perception)
 
