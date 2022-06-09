@@ -44,18 +44,17 @@ class AngleInterpolationAgent(PIDAgent):
         self.target_joints.update(target_joints)
         return super(AngleInterpolationAgent, self).think(perception)
 
-    #@Bezier interpolation by Finnem
+    #Bezier Finnem
     def bezier(self, p0, p1,p2,p3, time):
         p0x,p0y = p0
         p1x,p1y = p1
         p2x,p2y = p2
         p3x,p3y = p3
-        #calculating bezier polynomial as described in http://pomax.github.io/bezierinfo/
         bezierMatrix = np.array([[1,0,0,0],[-3,3,0,0],[3,-6,3,0],[-1,3,-3,1]])
         x = np.array([p0x,p1x,p2x,p3x])
         y = np.array([p0y,p1y,p2y,p3y])
         
-        #getting t value candidates (solutions for the polynomial) for curTime
+        #getting t value candidates (solutions for the polynomial) for current Time
         coefficientsX = np.dot(bezierMatrix, x)
         coefficientsX[0] -= time
         candidates = np.polynomial.polynomial.polyroots(coefficientsX)
@@ -63,14 +62,7 @@ class AngleInterpolationAgent(PIDAgent):
         #finding correct candidate for t (t has to be in [0,1])
         candidates = [x.real for x in candidates if -(1e-4)<=x.real<=1+(1e-4) and x.imag == 0] #error margin uncertain
         
-        
-        #solution should be unique but due to error margin solutions actually marginally larger than 1 (or actually marginally smaller than 0) might get chosen
-        if len(candidates) > 1: # if thats the case, there must also exist a correct solution -> choose the one closer to 0.5
-            candidates = np.asarray([(x,np.abs(x-0.5)) for x in candidates],dtype = [("value", float),("distance", float)]) 
-            candidates = np.sort(candidates, order="distance")
-            t = candidates[0][0]
-        else: #if there's only one solution it must be the right one
-            t = candidates[0]
+        t = candidates[0]
         
         t = np.clip(t,0,1)
             
@@ -86,6 +78,9 @@ class AngleInterpolationAgent(PIDAgent):
             self.start = perception.time
         #split it up
         names, times, keys = keyframes
+
+        if len(times)==0:
+            return {}
         #get current value to interpolate
         time = perception.time - self.start
         #import ipdb;ipdb.set_trace()
@@ -128,7 +123,7 @@ class AngleInterpolationAgent(PIDAgent):
         
 
 
-
+        #print(times)
         if time >= np.max([x[-1] for x in times])+self.start:  
             print(time, self.start,np.max([x[-1] for x in times]) )
             print('moin')

@@ -78,6 +78,7 @@ class PIDController(object):
         #PID = P+I+D
         
         #PID = (self.Kp + self.Ki*self.dt + self.Kd/self.dt)*e-(self.Kp + 2*self.Kd/self.dt)*self.e1+ self.e2 * self.Kd/self.dt#P+I+D
+        #formeln nach K's aufgelöst
         self.u +=self.Kp * (e - self.e1) + self.Ki * self.dt * e + self.Kd / self.dt * (e - 2*self.e1 + self.e2)
         
         speed = ((self.u - sensor) + (no_delay_out - sensor)) / (2*self.dt)
