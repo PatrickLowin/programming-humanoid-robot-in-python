@@ -116,20 +116,13 @@ class ForwardKinematicsAgent(PostureRecognitionAgent):
         '''forward kinematics
         :param joints: {joint_name: joint_angle}
         '''
-        for chain_joints in self.chains.values():
+        for name in joints:
             T = identity(4)
-            for joint in chain_joints:
-                
+            angle = joints[name]
+            Tl = self.local_trans(name, angle)
+            T = np.dot(T,Tl)
+            self.transforms[name] = T
 
-                if joint in ['LWristYaw', 'RWristYaw']:
-                    angle = 0
-                else:
-                    angle = joints[joint]
-                Tl = self.local_trans(joint, angle)
-
-                T = np.dot(T, Tl)
-
-                self.transforms[joint] = np.asarray(T)
 
 
 if __name__ == '__main__':
