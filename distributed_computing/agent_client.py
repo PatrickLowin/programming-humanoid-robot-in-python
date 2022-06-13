@@ -1,5 +1,4 @@
 '''In this file you need to implement remote procedure call (RPC) client
-
 * The agent_server.py has to be implemented first (at least one function is implemented and exported)
 * Please implement functions in ClientAgent first, which should request remote call directly
 * The PostHandler can be implement in the last step, it provides non-blocking functions, e.g. agent.post.execute_keyframes
@@ -7,6 +6,8 @@
 '''
 
 import weakref
+import xmlrpc.client
+import threading
 
 class PostHandler(object):
     '''the post hander wraps function to be excuted in paralle
@@ -16,11 +17,13 @@ class PostHandler(object):
 
     def execute_keyframes(self, keyframes):
         '''non-blocking call of ClientAgent.execute_keyframes'''
-        # YOUR CODE HERE
+        thread = threading.Thread(target=self.proxy.execute_keyframes(keyframes))
+        thread.start()
 
     def set_transform(self, effector_name, transform):
         '''non-blocking call of ClientAgent.set_transform'''
-        # YOUR CODE HERE
+        thread = threading.Thread(target=self.proxy.set_transform(effector_name, transform))
+        thread.start()
 
 
 class ClientAgent(object):
@@ -29,38 +32,46 @@ class ClientAgent(object):
     # YOUR CODE HERE
     def __init__(self):
         self.post = PostHandler(self)
+        self.RPC = xmlrpc.client.ServerProxy('http://localhost:8000')
     
     def get_angle(self, joint_name):
         '''get sensor value of given joint'''
-        # YOUR CODE HERE
+        if self.RPC.get_angle(joint_name) is None:
+            print('E404: wrong joint')
+        return self.RPC.get_angle(joint_name)
     
     def set_angle(self, joint_name, angle):
         '''set target angle of joint for PID controller
         '''
-        # YOUR CODE HERE
+        if self.RPC.get_angle(joint_name) is None:
+            print('E404: wrong joint')
+            return -1
+        self.RPC.set_angle(joint_name, angle)
 
     def get_posture(self):
         '''return current posture of robot'''
-        # YOUR CODE HERE
+        return self.RPC.get_posture(self)
 
     def execute_keyframes(self, keyframes):
         '''excute keyframes, note this function is blocking call,
         e.g. return until keyframes are executed
         '''
-        # YOUR CODE HERE
+        self.RPC.execute_keyframes(self, keyframes)
 
     def get_transform(self, name):
-        '''get transform with given name
-        '''
-        # YOUR CODE HERE
+        '''get transform with given name'''
+        return self.RPC.get_transform(self, name)
 
     def set_transform(self, effector_name, transform):
-        '''solve the inverse kinematics and control joints use the results
-        '''
-        # YOUR CODE HERE
+        '''solve the inverse kinematics and control joints use the results'''
+        self.RPC.set_trasform(self, effector_name, transform)
 
 if __name__ == '__main__':
     agent = ClientAgent()
-    # TEST CODE HERE
-
-
+    print('agent')
+    agent.get_angle("HeadPitch")
+    print('get',agent.get_angle("HeadPitch"))
+    agent.set_angle("HeadPitch", 0.1)
+    print('set',agent.get_angle("HeadPitch"))
+    
+    
